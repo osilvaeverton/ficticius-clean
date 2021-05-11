@@ -11,6 +11,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import java.math.BigDecimal;
 import java.util.List;
 
@@ -27,7 +28,7 @@ public class VeiculoController {
     }
 
     @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<VeiculoResponseDTO> create(@RequestBody VeiculoCreateRequestDTO veiculoCreateRequestDTO){
+    public ResponseEntity<VeiculoResponseDTO> create(@RequestBody @Valid VeiculoCreateRequestDTO veiculoCreateRequestDTO){
         return new ResponseEntity<>(this.veiculoService.create(veiculoCreateRequestDTO), HttpStatus.CREATED);
     }
 

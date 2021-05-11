@@ -1,4 +1,4 @@
-package br.com.fluig.config;
+package br.com.fluig.ficticiusclean.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
