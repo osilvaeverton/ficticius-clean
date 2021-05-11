@@ -8,7 +8,7 @@ import org.mapstruct.Mapper;
 @Mapper(componentModel = "spring")
 public interface VeiculoMapper {
 
-    VeiculoResponseDTO veiculoToVeiculoResponseDTO(Veiculo veiculo);
+    VeiculoResponseDTO veiculo2VeiculoResponseDTO(Veiculo veiculo);
 
     Veiculo veiculoCreateRequestDTO2Veiculo(VeiculoCreateRequestDTO veiculoCreateRequestDTO);
 

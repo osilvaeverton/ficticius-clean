@@ -2,7 +2,6 @@ package br.com.fluig.ficticiusclean.service;
 
 import br.com.fluig.ficticiusclean.controller.veiculo.dto.VeiculoMapper;
 import br.com.fluig.ficticiusclean.controller.veiculo.dto.request.VeiculoCreateRequestDTO;
-import br.com.fluig.ficticiusclean.controller.veiculo.dto.response.VeiculoCreateResponseDTO;
 import br.com.fluig.ficticiusclean.controller.veiculo.dto.response.VeiculoResponseDTO;
 import br.com.fluig.ficticiusclean.exception.VeiculoNaoEncontradoException;
 import br.com.fluig.ficticiusclean.model.Veiculo;
@@ -26,22 +25,23 @@ public class VeiculoService {
     public List<VeiculoResponseDTO> findAll(){
         return veiculoRepository.findAll()
                 .stream()
-                .map(veiculoMapper::veiculoToVeiculoResponseDTO)
+                .map(veiculoMapper::veiculo2VeiculoResponseDTO)
                 .collect(Collectors.toList());
     }
 
     public VeiculoResponseDTO create(VeiculoCreateRequestDTO veiculoCreateRequestDTO) {
         Veiculo veiculo = veiculoMapper.veiculoCreateRequestDTO2Veiculo(veiculoCreateRequestDTO);
         Veiculo saved = this.veiculoRepository.save(veiculo);
-        return veiculoMapper.veiculoToVeiculoResponseDTO(saved);
+        return veiculoMapper.veiculo2VeiculoResponseDTO(saved);
     }
 
-    public Veiculo findById(Long id){
+    public VeiculoResponseDTO findById(Long id) throws VeiculoNaoEncontradoException {
         return veiculoRepository.findById(id)
+                .map(veiculoMapper::veiculo2VeiculoResponseDTO)
                 .orElseThrow(VeiculoNaoEncontradoException::new);
     }
 
-    public Veiculo replace(Veiculo veiculo, Long id){
+    public Veiculo replace(Veiculo veiculo, Long id) throws VeiculoNaoEncontradoException {
         Optional<Veiculo> veiculoOptional = veiculoRepository.findById(id);
         if (veiculoOptional.isPresent()){
             Veiculo saved = veiculoOptional.get();
@@ -57,7 +57,7 @@ public class VeiculoService {
         }
     }
 
-    public Veiculo update(Veiculo veiculo, Long id){
+    public Veiculo update(Veiculo veiculo, Long id) throws VeiculoNaoEncontradoException {
         Optional<Veiculo> veiculoOptional = veiculoRepository.findById(id);
         if (veiculoOptional.isPresent()){
             Veiculo saved = veiculoOptional.get();
