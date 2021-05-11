@@ -1,16 +1,18 @@
 package br.com.fluig.ficticiusclean.service;
 
+import br.com.fluig.ficticiusclean.controller.veiculo.dto.response.PrevisaoDeGastosResponseDTO;
 import br.com.fluig.ficticiusclean.controller.veiculo.dto.VeiculoMapper;
 import br.com.fluig.ficticiusclean.controller.veiculo.dto.request.VeiculoCreateRequestDTO;
 import br.com.fluig.ficticiusclean.controller.veiculo.dto.response.VeiculoResponseDTO;
-import br.com.fluig.ficticiusclean.exception.VeiculoNaoEncontradoException;
 import br.com.fluig.ficticiusclean.model.Veiculo;
 import br.com.fluig.ficticiusclean.repository.VeiculoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.Comparator;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -35,43 +37,30 @@ public class VeiculoService {
         return veiculoMapper.veiculo2VeiculoResponseDTO(saved);
     }
 
-    public VeiculoResponseDTO findById(Long id) throws VeiculoNaoEncontradoException {
-        return veiculoRepository.findById(id)
-                .map(veiculoMapper::veiculo2VeiculoResponseDTO)
-                .orElseThrow(VeiculoNaoEncontradoException::new);
+    public List<PrevisaoDeGastosResponseDTO> previsaoDeGastos(BigDecimal precoGasolina, Double kmPercorridoCidade, Double kmPercorridoRodovia) {
+        List<Veiculo> veiculos = veiculoRepository.findAll();
+        return veiculos
+                .stream()
+                .map(veiculo -> calculaConsumo(precoGasolina, kmPercorridoCidade, kmPercorridoRodovia, veiculo))
+                .sorted(Comparator.comparing(PrevisaoDeGastosResponseDTO::getValorGastoComCombustivel))
+                .collect(Collectors.toList());
     }
 
-    public Veiculo replace(Veiculo veiculo, Long id) throws VeiculoNaoEncontradoException {
-        Optional<Veiculo> veiculoOptional = veiculoRepository.findById(id);
-        if (veiculoOptional.isPresent()){
-            Veiculo saved = veiculoOptional.get();
-            saved.setNome(veiculo.getNome());
-            saved.setMarca(veiculo.getMarca());
-            saved.setModelo(veiculo.getModelo());
-            saved.setConsumoMedioCidade(veiculo.getConsumoMedioCidade());
-            saved.setConsumoMedioRodovia(veiculo.getConsumoMedioRodovia());
-            saved.setDataFabricacao(veiculo.getDataFabricacao());
-            return veiculoRepository.save(saved);
-        } else {
-            throw new VeiculoNaoEncontradoException();
-        }
+    private PrevisaoDeGastosResponseDTO calculaConsumo(BigDecimal precoGasolina, Double kmPercorridoCidade, Double kmPercorridoRodovia, Veiculo veiculo) {
+        Double combustivelGastoRodovia = kmPercorridoRodovia / veiculo.getConsumoMedioRodovia();
+        Double combustivelGastoCidade = kmPercorridoCidade / veiculo.getConsumoMedioCidade();
+
+        Double totalGasto = combustivelGastoRodovia + combustivelGastoCidade;
+        BigDecimal valorTotalCombustivel = precoGasolina.multiply(BigDecimal.valueOf(totalGasto))
+                                                            .setScale(2, RoundingMode.HALF_EVEN);
+
+        return PrevisaoDeGastosResponseDTO.builder()
+                    .nome(veiculo.getNome())
+                    .marca(veiculo.getMarca())
+                    .modelo(veiculo.getModelo())
+                    .ano(veiculo.getDataFabricacao())
+                    .combustivelGasto(Double.valueOf(Math.round(totalGasto)))
+                    .valorGastoComCombustivel(valorTotalCombustivel)
+                .build();
     }
-
-    public Veiculo update(Veiculo veiculo, Long id) throws VeiculoNaoEncontradoException {
-        Optional<Veiculo> veiculoOptional = veiculoRepository.findById(id);
-        if (veiculoOptional.isPresent()){
-            Veiculo saved = veiculoOptional.get();
-            saved.setNome(veiculo.getNome());
-            saved.setMarca(veiculo.getMarca());
-            saved.setModelo(veiculo.getModelo());
-            saved.setConsumoMedioCidade(veiculo.getConsumoMedioCidade());
-            saved.setConsumoMedioRodovia(veiculo.getConsumoMedioRodovia());
-            saved.setDataFabricacao(veiculo.getDataFabricacao());
-            return veiculoRepository.save(saved);
-        } else {
-            throw new VeiculoNaoEncontradoException();
-        }
-
-    }
-
 }
